@@ -14,9 +14,9 @@ public class logMe {
         logMe.out = out;
     }
 
-    private static Map<Class<?>, header> autoHeader = new HashMap<>();
+    private static Map<Distinguisher, header> autoHeader = new HashMap<>();
 
-    private static void addAutoHeader(Class<?> c, header h) {
+    public static void addAutoHeader(Package c, header h) {
         autoHeader.put(c, h);
     }
 
@@ -92,13 +92,10 @@ public class logMe {
         lastString = str;
     }
 
+    @CallerSensitive
     public static void log(String str) {
         header header = autoHeader();
         log(str, intendation, intendationString, header, true);
-    }
-
-    public static void log(Object obj) {
-        log(obj.toString());
     }
 
     public static void debug(String str) {
@@ -146,10 +143,13 @@ public class logMe {
         if (steA.length < 5)
             return LOGGER;
         var ste = steA[4];
-        header res = autoHeader.get(ste.getClass());
-        if(res == null)
-            return LOG_LEVEL.INFO.header();
-        return res;
+        for(Distinguisher p : autoHeader.keySet()){
+            if(p.appliesTo(ste)){
+                header res = autoHeader.get(ste.getClass().getPackage());
+                return res;
+            }
+        }
+        return LOG_LEVEL.INFO.header();
     }
 
     private static int consoleWidth() {
