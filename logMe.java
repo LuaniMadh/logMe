@@ -1,5 +1,5 @@
 package logme;
-
+import static logme.colors.*;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
