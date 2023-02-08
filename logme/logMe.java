@@ -1,25 +1,34 @@
-import com.diogonunes.jcolor.AnsiFormat;
-import static com.diogonunes.jcolor.Ansi.colorize;
-import static com.diogonunes.jcolor.Attribute.*;
+package logme;
+
+import static logme.colors.*;
+
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class logMe {
+    final static private int headerLength = "[ debug ] ".length();
+    final static private String intendationString = " ".repeat(headerLength);
 
-    //Every log called from the main class will have the [ main ] header.
-    public static String mainClass = "mainClassName";
-    //Every log called from the api class will have the [ API ] header.
-    public static String apiClass = "apiClassName";
+    private static PrintStream out = System.out;
+
+    public static void setOut(PrintStream out) {
+        logMe.out = out;
+    }
+
+    private static Map<Class<?>, header> autoHeader = new HashMap<>();
 
     public static enum LOG_LEVEL {
-        MAIN("[ main  ] ", new AnsiFormat(MAGENTA_TEXT(), BACK_COLOR(234))),
-        DEBUG("[ debug ] ", new AnsiFormat(GREEN_TEXT(), BACK_COLOR(234))),
-        INFO("[ info  ] ", new AnsiFormat(CYAN_TEXT(), BACK_COLOR(234))),
-        WARN("[ warn  ] ", new AnsiFormat(YELLOW_TEXT(), BACK_COLOR(234))),
-        ERROR("[ error ] ", new AnsiFormat(RED_TEXT(), BACK_COLOR(234))),
-        API("[ API   ] ", new AnsiFormat(BLUE_TEXT(), BACK_COLOR(234)));
+        MAIN("[ main  ] ", PURPLE),
+        DEBUG("[ debug ] ", GREEN),
+        INFO("[ info  ] ", CYAN),
+        WARN("[ warn  ] ", YELLOW),
+        ERROR("[ error ] ", RED),
+        API("[ API   ] ", BLUE);
 
         private final header h;
 
-        private LOG_LEVEL(String header, AnsiFormat format) {
+        private LOG_LEVEL(String header, String... format) {
             h = new header(header, format);
         }
 
@@ -28,8 +37,7 @@ public class logMe {
         }
     }
 
-    final static private int headerLength = "[ debug ] ".length();
-    final static private String intendationString = " ".repeat(headerLength);
+    private static header LOGGER = new header("[LOGGER ] ", WHITE);
 
     private static int lastLineLength = 0; // only set and important when \r is used
     private static String lastString = "";
@@ -47,26 +55,26 @@ public class logMe {
         // check for repetition
         if (lastString.equals(wStr) && newLine) {
             lineRepetitions++;
-            System.out.print("\r");
+            out.print("\r");
         } else if (!newLine) {
             if (lineRepetitions != 0)
-                System.out.print("\r");
+                out.print("\r");
             else
-                System.out.println();
+                out.println();
             lineRepetitions++;
         } else {
-            System.out.println();
+            out.println();
             lineRepetitions = 0;
         }
 
         // print
-        System.out.print(intendationString.repeat(intendation));// intendaton
+        out.print(intendationString.repeat(intendation));// intendaton
         h.print();// header
-        System.out.print(wStr);// str, intendation was previously added(see: format intendation)
+        out.print(wStr);// str, intendation was previously added(see: format intendation)
 
         // clean if last log was \r
         if (lastLineLength > wStr.length()) {
-            System.out.print(" ".repeat(lastLineLength - wStr.length()));
+            out.print(" ".repeat(lastLineLength - wStr.length()));
             lastLineLength = 0;
         }
 
@@ -76,18 +84,14 @@ public class logMe {
 
         // repetition-label
         if (lineRepetitions > 0 && newLine) {
-            System.out.print(intendationString + "x" + (lineRepetitions + 1));
+            out.print(intendationString + "x" + (lineRepetitions + 1));
         }
 
         lastString = str;
     }
 
     public static void log(String str) {
-        header header = LOG_LEVEL.INFO.header();
-        if (calledBy(mainClass))
-            header = LOG_LEVEL.MAIN.header();
-        if (calledBy(apiClass))
-            header = LOG_LEVEL.API.header();
+        header header = autoHeader();
         log(str, intendation, intendationString, header, true);
     }
 
@@ -135,13 +139,15 @@ public class logMe {
         logMe.intendation = intendation;
     }
 
-    private static boolean calledBy(String className) {
+    private static header autoHeader() {
         StackTraceElement[] steA = Thread.currentThread().getStackTrace();
         if (steA.length < 5)
-            return true;
+            return LOGGER;
         var ste = steA[4];
-        String callerClass = ste.getClassName();
-        return callerClass.startsWith(className);
+        header res = autoHeader.get(ste.getClass());
+        if(res == null)
+            return LOG_LEVEL.INFO.header();
+        return res;
     }
 
     private static int consoleWidth() {
@@ -153,7 +159,7 @@ public class logMe {
                     "\u001b[u", // restore cursor position
             };
             for (String s : signals) {
-                System.out.print(s);
+                out.print(s);
             }
             if (System.in.available() == 0)
                 return -1;
@@ -188,7 +194,7 @@ public class logMe {
             newLineLoop: while ((newLineIndex = nextIndex) != -1) {
                 nextIndex = wStr.indexOf("\n", newLineIndex + 1);
                 int j = newLineIndex;
-                // System.out.println(wStr + ", " + newLineIndex + ", " + nextIndex);
+                // out.println(wStr + ", " + newLineIndex + ", " + nextIndex);
                 while (j + 1 < ((nextIndex == -1) ? wStr.length() : nextIndex)) {
                     j++;
                     if (wStr.charAt(j) == '\n') {
@@ -207,9 +213,9 @@ public class logMe {
 
     private static class header {
         private String header;
-        private AnsiFormat format;
+        private String[] format;
 
-        public header(String header, AnsiFormat format) {
+        public header(String header, String... format) {
             String h = header + "";
             this.format = format;
 
@@ -234,16 +240,28 @@ public class logMe {
             return header;
         }
 
-        public AnsiFormat getFormat() {
+        public String[] getFormat() {
             return format;
         }
 
         public void print() {
-            System.out.print(colorize(header, format));
+            out.print(colorize(header, format));
         }
+    }
 
-        public void println() {
-            System.out.println(colorize(header, format));
+    public static String colorize(String str, String[] format) {
+        String res = "";
+        for (String f : format) {
+            res += f;
         }
+        return res + str + RESET;
+    }
+
+    public static void demo() {
+        log("test");
+    }
+
+    public static void main(String[] args) {
+        demo();
     }
 }
