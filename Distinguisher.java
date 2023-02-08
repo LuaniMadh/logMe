@@ -2,7 +2,7 @@ package logme;
 
 import java.io.File;
 import java.lang.reflect.Method;
-public class Distinguisher {
+class Distinguisher {
     private enum type {
         FILE,
         CLASS,

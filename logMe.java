@@ -1,7 +1,10 @@
 package logme;
 
 import static logme.colors.*;
+
+import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +20,28 @@ public class logMe {
 
     private static Map<Distinguisher, header> autoHeader = new HashMap<>();
 
-    public static void addAutoHeader(Distinguisher c, header h) {
-        autoHeader.put(c, h);
+    public static void addAutoHeader(File c, header h, boolean strict) {
+        autoHeader.put(new Distinguisher(c, strict), h);
+    }
+
+    public static void addAutoHeader(Class<?> c, header h, boolean strict) {
+        autoHeader.put(new Distinguisher(c, strict), h);
+    }
+
+    public static void addAutoHeader(Method c, header h, boolean strict) {
+        autoHeader.put(new Distinguisher(c, strict), h);
+    }
+
+    public static void addAutoHeader(File c, header h) {
+        addAutoHeader(c,h, false);
+    }
+
+    public static void addAutoHeader(Class c, header h) {
+        addAutoHeader(c,h, false);
+    }
+
+    public static void addAutoHeader(Method c, header h) {
+        addAutoHeader(c,h, false);
     }
 
     public static enum LOG_LEVEL {
