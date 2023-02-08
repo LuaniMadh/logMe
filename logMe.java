@@ -1,4 +1,5 @@
 package logme;
+
 import static logme.colors.*;
 import java.io.PrintStream;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ public class logMe {
 
     private static Map<Distinguisher, header> autoHeader = new HashMap<>();
 
-    public static void addAutoHeader(Package c, header h) {
+    public static void addAutoHeader(Distinguisher c, header h) {
         autoHeader.put(c, h);
     }
 
@@ -92,7 +93,6 @@ public class logMe {
         lastString = str;
     }
 
-    @CallerSensitive
     public static void log(String str) {
         header header = autoHeader();
         log(str, intendation, intendationString, header, true);
@@ -143,15 +143,14 @@ public class logMe {
         if (steA.length < 5)
             return LOGGER;
         var ste = steA[4];
-        for(Distinguisher p : autoHeader.keySet()){
-            if(p.appliesTo(ste)){
-                header res = autoHeader.get(ste.getClass().getPackage());
-                return res;
-            }
+        for (Distinguisher p : autoHeader.keySet()) {
+            if (p.appliesTo(ste))
+                return autoHeader.get(p);
         }
         return LOG_LEVEL.INFO.header();
     }
 
+    @SuppressWarnings("unused")
     private static int consoleWidth() {
         try {
             String[] signals = new String[] {
@@ -236,14 +235,6 @@ public class logMe {
             h = h + " ".repeat(headerLength - h.length());
 
             this.header = h;
-        }
-
-        public String getHeader() {
-            return header;
-        }
-
-        public String[] getFormat() {
-            return format;
         }
 
         public void print() {
