@@ -1,20 +1,8 @@
 package logme;
 
-import static logme.colors.*;
-
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-
-/**
-* Uses maven, add the following lines to your pom.xml:
-*
-* <!-- https://mvnrepository.com/artifact/com.diogonunes/JColor -->
-* <dependency>
-* <groupId>com.diogonunes</groupId>
-* <artifactId>JColor</artifactId>
-* <version>5.5.1</version>
-*/
 
 public class logMe {
     final static private int headerLength = "[ debug ] ".length();
