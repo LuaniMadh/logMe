@@ -16,6 +16,10 @@ public class logMe {
 
     private static Map<Class<?>, header> autoHeader = new HashMap<>();
 
+    private static void addAutoHeader(Class<?> c, header h) {
+        autoHeader.put(c, h);
+    }
+
     public static enum LOG_LEVEL {
         MAIN("[ main  ] ", PURPLE),
         DEBUG("[ debug ] ", GREEN),
