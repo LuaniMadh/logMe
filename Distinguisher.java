@@ -62,9 +62,9 @@ class Distinguisher {
         return switch (t) {
             case FILE ->{
                 if (strict)
-                    yield ste.getFileName().equals(p.getName());
-                else
                     yield ste.getFileName().startsWith(p.getName());
+                else
+                    yield ste.getFileName().contains(p.getName());
             }
             case CLASS ->{
                 if (strict)
