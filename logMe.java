@@ -36,7 +36,7 @@ public class logMe {
         addAutoHeader(c,h, false);
     }
 
-    public static void addAutoHeader(Class c, header h) {
+    public static void addAutoHeader(Class<?> c, header h) {
         addAutoHeader(c,h, false);
     }
 
