@@ -163,9 +163,9 @@ public class logMe {
 
     private static header autoHeader() {
         StackTraceElement[] steA = Thread.currentThread().getStackTrace();
-        if (steA.length < 5)
+        if (steA.length < 4)
             return LOGGER;
-        var ste = steA[4];
+        var ste = steA[3];
         for (Distinguisher p : autoHeader.keySet()) {
             if (p.appliesTo(ste))
                 return autoHeader.get(p);
