@@ -33,22 +33,22 @@ public class logMe {
     }
 
     public static void addAutoHeader(File c, header h) {
-        addAutoHeader(c,h, false);
+        addAutoHeader(c, h, false);
     }
 
     public static void addAutoHeader(Class<?> c, header h) {
-        addAutoHeader(c,h, false);
+        addAutoHeader(c, h, false);
     }
 
     public static void addAutoHeader(Method c, header h) {
-        addAutoHeader(c,h, false);
+        addAutoHeader(c, h, false);
     }
 
     public static enum LOG_LEVEL {
         MAIN("[ main  ] ", PURPLE),
         DEBUG("[ debug ] ", GREEN),
         INFO("[ info  ] ", CYAN),
-        WARN("[ warn  ] ", YELLOW),
+        WARN("[WARNING] ", YELLOW),
         ERROR("[ error ] ", RED),
         API("[ API   ] ", BLUE);
 
@@ -116,25 +116,33 @@ public class logMe {
         lastString = str;
     }
 
-    public static void log(String str) {
+    public static void log(Object str) {
         header header = autoHeader();
-        log(str, intendation, intendationString, header, true);
+        if (str == null)
+            str = "null";
+        log(str.toString(), intendation, intendationString, header, true);
     }
 
-    public static void debug(String str) {
-        log(str, intendation, intendationString, LOG_LEVEL.DEBUG.header(), true);
+    public static void debug(Object str) {
+        if (str == null)
+            str = "null";
+        log(str.toString(), intendation, intendationString, LOG_LEVEL.DEBUG.header(), true);
     }
 
-    public static void error(String str) {
-        log(str, intendation, intendationString, LOG_LEVEL.ERROR.header(), true);
+    public static void error(Object str) {
+        if (str == null)
+            str = "null";
+        if (str instanceof Exception e) {
+            log("", intendation, intendationString, LOG_LEVEL.ERROR.header(), true);
+            e.printStackTrace();
+        } else
+            log(str.toString(), intendation, intendationString, LOG_LEVEL.ERROR.header(), true);
     }
 
-    public static void error(Object obj) {
-        error(obj.toString());
-    }
-
-    public static void log(String str, LOG_LEVEL level) {
-        log(str, intendation, intendationString, level.header(), true);
+    public static void log(Object str, LOG_LEVEL level) {
+        if (str == null)
+            str = "null";
+        log(str.toString(), intendation, intendationString, level.header(), true);
     }
 
     public static void sameLineLog(String str) {
@@ -204,7 +212,7 @@ public class logMe {
             System.err.printf("rows = %s, cols = %s%n", rows, cols);
             return cols;
         } catch (Exception e) {
-            e.printStackTrace();
+            error(e);
         }
         return -1;
     }
